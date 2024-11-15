@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ID Sheet PDF Generator</title>
+</head>
+<body>
+
+  <h1>ID Sheet PDF Generator</h1>
+  <label for="front-image">Select Front Image:</label>
+  <input type="file" id="front-image" accept="image/*"><br><br>
+
+  <label for="back-image">Select Back Image:</label>
+  <input type="file" id="back-image" accept="image/*"><br><br>
+
+  <label for="copies">Number of Copies:</label>
+  <input type="number" id="copies" min="1" value="1"><br><br>
+
+  <button onclick="generatePDF()">Generate PDF</button>
+
+  <!-- jsPDF CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <script>
+    async function generatePDF() {
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF();
+
+      const frontImageInput = document.getElementById('front-image');
+      const backImageInput = document.getElementById('back-image');
+      const copies = parseInt(document.getElementById('copies').value);
+
+      if (!frontImageInput.files[0] || !backImageInput.files[0]) {
+        alert("Please upload both front and back images.");
+        return;
+      }
+
+      // Load front and back images as Data URLs
+      const frontUrl = await getImageDataURL(frontImageInput.files[0]);
+      const backUrl = await getImageDataURL(backImageInput.files[0]);
+
+      // Define dimensions and positions for each ID image
+      const cardWidth = 90; // Width in mm (half-page width for two cards per row)
+      const cardHeight = 60; // Height in mm
+      const leftX = 10; // X position for left image
+      const rightX = 110; // X position for right image
+      const rowHeight = 80; // Y position increment for each row
+
+      // Generate front pages with 2 images per row
+      for (let i = 0; i < copies; i++) {
+        const xPos = i % 2 === 0 ? leftX : rightX; // Alternate positions in each row
+        const yPos = 20 + Math.floor(i / 2) * rowHeight; // Increment row height every 2 images
+
+        pdf.addImage(frontUrl, 'PNG', xPos, yPos, cardWidth, cardHeight);
+
+        // Add a new page if the current page is full (e.g., 5 rows per page, 10 images)
+        if ((i + 1) % 10 === 0 && i + 1 < copies) {
+          pdf.addPage();
+        }
+      }
+
+      // Generate back pages with 2 images per row
+      pdf.addPage(); // Start back pages on a new page
+      for (let i = 0; i < copies; i++) {
+        const xPos = i % 2 === 0 ? leftX : rightX;
+        const yPos = 20 + Math.floor(i / 2) * rowHeight;
+
+        pdf.addImage(backUrl, 'PNG', xPos, yPos, cardWidth, cardHeight);
+
+        // Add a new page if the current page is full
+        if ((i + 1) % 10 === 0 && i + 1 < copies) {
+          pdf.addPage();
+        }
+      }
+
+      // Save the PDF
+      pdf.save('ID_Sheet.pdf');
+    }
+
+    // Helper function to read image file as Data URL
+    function getImageDataURL(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+  </script>
+
+</body>
+</html>
+
