@@ -9,21 +9,35 @@
 
   <h1>ID Sheet PDF Generator</h1>
   <label for="front-image">Select Front Image:</label>
+  <form >
+
   <input type="file" id="front-image" accept="image/*"><br><br>
 
   <label for="back-image">Select Back Image:</label>
   <input type="file" id="back-image" accept="image/*"><br><br>
 
   <label for="copies">Number of Copies:</label>
-  <input type="number" id="copies" min="1" value="1"><br><br>
+  <input type="number" id="copies" max="6" step="1"  min="1" value="1"><br><br>
 
-  <button onclick="generatePDF()">Generate PDF</button>
+  <input type="submit" value='Genrate PDf' />
+  <button type="reset">Reset</button>
+  </form>
 
   <!-- jsPDF CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <script>
-    async function generatePDF() {
+    window.onload = ()=>{
+      const form = document.getElementsByTagName('form')[0]
+        form.addEventListener('submit' , (e)=>{
+            e.preventDefault()
+            generatePDF(e)
+        })
+    }
+
+    async function generatePDF(e) {
+      e?.preventDefault()
+      e?.stopPropagation()
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF();
 
